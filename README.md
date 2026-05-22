@@ -78,6 +78,38 @@
 sudo dnf install dotnet-sdk-9.0
 ```
 
+### Установка и настройка MariaDB
+
+```
+sudo dnf install mariadb
+sudo systemctl enable --now mariadb
+sudo mysql_secure_installation
+```
+
+Перед запуском скрипта инициализации замените пароль в `sql/init-db.sql`.
+
+```
+sudo -u mysql mysql < sql/init-db.sql
+```
+
+Проверка:
+
+```
+sudo -u mysql mysql -e "USE booklibrary; SHOW TABLES; DESCRIBE Books; DESCRIBE Authors; DESCRIBE BookAuthors;"
+```
+
+### Настройка подключения к базе данных
+
+В `BookLibrary/appsettings.json` в строке подключения `DefaultConnection` указать параметры: адрес сервера, имя пользователя, пароль.
+
+Установить зависимости:
+
+```
+cd BookLibrary
+dotnet add package MySqlConnector
+dotnet add package Dapper
+```
+
 ### Запуск приложения
 
 ```
