@@ -1,0 +1,27 @@
+@page
+@model BooksIndexModel
+@{
+    ViewData["Title"] = "Книги";
+}
+
+<h1>Книги</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Страниц</th>
+            <th>Авторы</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var book in Model.Books)
+        {
+            <tr>
+                <td><a asp-page="/Books/Details" asp-route-id="@book.Id">@book.Title</a></td>
+                <td>@book.PageCount</td>
+                <td>@string.Join(", ", book.Authors)</td>
+            </tr>
+        }
+    </tbody>
+</table>

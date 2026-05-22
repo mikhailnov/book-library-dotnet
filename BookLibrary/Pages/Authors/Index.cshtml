@@ -1,0 +1,25 @@
+@page
+@model AuthorsIndexModel
+@{
+    ViewData["Title"] = "Авторы";
+}
+
+<h1>Авторы</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Книги</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var author in Model.Authors)
+        {
+            <tr>
+                <td><a asp-page="/Authors/Details" asp-route-id="@author.Id">@author.FullName</a></td>
+                <td>@string.Join(", ", author.Books)</td>
+            </tr>
+        }
+    </tbody>
+</table>
