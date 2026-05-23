@@ -8,6 +8,10 @@ public class Repository
 {
     private readonly string _connectionString;
 
+    public const int MaxTitleLength = 500;
+    public const int MaxDescriptionLength = 100000;
+    public const int MaxFullNameLength = 500;
+
     public Repository(string connectionString)
     {
         _connectionString = connectionString;
@@ -52,20 +56,46 @@ public class Repository
         return book;
     }
 
-    public void CreateBook(Book book)
+    public List<string> CreateBook(Book book)
     {
+        var errors = ValidateBook(book);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         using var connection = new SqlConnection(_connectionString);
+        CheckDuplicateBook(connection, book.Title, null, errors);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         connection.Execute(
             "INSERT INTO Books (Title, PageCount, Description) VALUES (@Title, @PageCount, @Description)",
             book);
+        return errors;
     }
 
-    public void UpdateBook(Book book)
+    public List<string> UpdateBook(Book book)
     {
+        var errors = ValidateBook(book);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         using var connection = new SqlConnection(_connectionString);
+        CheckDuplicateBook(connection, book.Title, book.Id, errors);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         connection.Execute(
             "UPDATE Books SET Title = @Title, PageCount = @PageCount, Description = @Description WHERE Id = @Id",
             book);
+        return errors;
     }
 
     public void DeleteBook(int id)
@@ -108,20 +138,46 @@ public class Repository
         return connection.QueryFirstOrDefault<Author>("SELECT * FROM Authors WHERE Id = @Id", new { Id = id });
     }
 
-    public void CreateAuthor(Author author)
+    public List<string> CreateAuthor(Author author)
     {
+        var errors = ValidateAuthor(author);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         using var connection = new SqlConnection(_connectionString);
+        CheckDuplicateAuthor(connection, author.FullName, null, errors);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         connection.Execute(
             "INSERT INTO Authors (FullName, Description) VALUES (@FullName, @Description)",
             author);
+        return errors;
     }
 
-    public void UpdateAuthor(Author author)
+    public List<string> UpdateAuthor(Author author)
     {
+        var errors = ValidateAuthor(author);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         using var connection = new SqlConnection(_connectionString);
+        CheckDuplicateAuthor(connection, author.FullName, author.Id, errors);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         connection.Execute(
             "UPDATE Authors SET FullName = @FullName, Description = @Description WHERE Id = @Id",
             author);
+        return errors;
     }
 
     public void DeleteAuthor(int id)
@@ -169,25 +225,193 @@ public class Repository
         return periodical;
     }
 
-    public void CreatePeriodical(Periodical periodical)
+    public List<string> CreatePeriodical(Periodical periodical)
     {
+        var errors = ValidatePeriodical(periodical);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         using var connection = new SqlConnection(_connectionString);
+        CheckDuplicatePeriodical(connection, periodical.Title, null, errors);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         connection.Execute(
             "INSERT INTO Periodicals (Title, Description) VALUES (@Title, @Description)",
             periodical);
+        return errors;
     }
 
-    public void UpdatePeriodical(Periodical periodical)
+    public List<string> UpdatePeriodical(Periodical periodical)
     {
+        var errors = ValidatePeriodical(periodical);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         using var connection = new SqlConnection(_connectionString);
+        CheckDuplicatePeriodical(connection, periodical.Title, periodical.Id, errors);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
         connection.Execute(
             "UPDATE Periodicals SET Title = @Title, Description = @Description WHERE Id = @Id",
             periodical);
+        return errors;
     }
 
     public void DeletePeriodical(int id)
     {
         using var connection = new SqlConnection(_connectionString);
         connection.Execute("DELETE FROM Periodicals WHERE Id = @Id", new { Id = id });
+    }
+
+    private static List<string> ValidateBook(Book book)
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(book.Title))
+        {
+            errors.Add("Название книги не может быть пустым.");
+        }
+        else if (book.Title.Length > MaxTitleLength)
+        {
+            errors.Add("Название книги не может быть длиннее " + MaxTitleLength + " символов.");
+        }
+
+        CheckHtml(book.Title, "Название книги", errors);
+
+        if (book.PageCount <= 0)
+        {
+            errors.Add("Количество страниц должно быть положительным числом.");
+        }
+
+        if (book.Description.Length > MaxDescriptionLength)
+        {
+            errors.Add("Описание книги не может быть длиннее " + MaxDescriptionLength + " символов.");
+        }
+
+        CheckHtml(book.Description, "Описание книги", errors);
+
+        return errors;
+    }
+
+    private static List<string> ValidateAuthor(Author author)
+    {
+        var errors = new List<string>();
+
+        // Нормализация: "Иванов И. П." -> "Иванов И.П."
+        author.FullName = System.Text.RegularExpressions.Regex.Replace(
+            author.FullName, @"(\.) ([А-ЯЁA-Z]\.)", "$1$2");
+
+        if (string.IsNullOrWhiteSpace(author.FullName))
+        {
+            errors.Add("ФИО автора не может быть пустым.");
+        }
+        else if (author.FullName.Length > MaxFullNameLength)
+        {
+            errors.Add("ФИО автора не может быть длиннее " + MaxFullNameLength + " символов.");
+        }
+        // Разрешены: русские и латинские буквы, точки, пробелы, кавычки (« » ")
+        else if (!System.Text.RegularExpressions.Regex.IsMatch(
+            author.FullName, @"^[а-яА-ЯёЁa-zA-Z. ""«»]+$"))
+        {
+            errors.Add("ФИО автора может содержать только буквы, точки и пробелы.");
+        }
+
+        if (author.Description.Length > MaxDescriptionLength)
+        {
+            errors.Add("Описание автора не может быть длиннее " + MaxDescriptionLength + " символов.");
+        }
+
+        CheckHtml(author.Description, "Описание автора", errors);
+
+        return errors;
+    }
+
+    private static List<string> ValidatePeriodical(Periodical periodical)
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(periodical.Title))
+        {
+            errors.Add("Название издания не может быть пустым.");
+        }
+        else if (periodical.Title.Length > MaxTitleLength)
+        {
+            errors.Add("Название издания не может быть длиннее " + MaxTitleLength + " символов.");
+        }
+
+        CheckHtml(periodical.Title, "Название издания", errors);
+
+        if (periodical.Description.Length > MaxDescriptionLength)
+        {
+            errors.Add("Описание издания не может быть длиннее " + MaxDescriptionLength + " символов.");
+        }
+
+        CheckHtml(periodical.Description, "Описание издания", errors);
+
+        return errors;
+    }
+
+    // Проверка на наличие HTML-тегов
+    private static void CheckHtml(string value, string fieldName, List<string> errors)
+    {
+        if (System.Text.RegularExpressions.Regex.IsMatch(value, @"<\s*[a-zA-Z/]"))
+        {
+            errors.Add(fieldName + " не должно содержать HTML-теги.");
+        }
+    }
+
+    // Проверка дубликатов: excludeId — Id записи, которую обновляем (null при создании)
+    // SQL-инъекция невозможна: Dapper использует параметризованные запросы,
+    // а данные уже прошли валидацию (пустота, длина, HTML-теги)
+    private static void CheckDuplicateBook(System.Data.Common.DbConnection connection, string title, int? excludeId, List<string> errors)
+    {
+        var sql = excludeId.HasValue
+            ? "SELECT COUNT(*) FROM Books WHERE Title = @Title AND Id != @ExcludeId"
+            : "SELECT COUNT(*) FROM Books WHERE Title = @Title";
+
+        var count = connection.QuerySingle<int>(sql, new { Title = title, ExcludeId = excludeId });
+
+        if (count > 0)
+        {
+            errors.Add("Книга с таким названием уже существует.");
+        }
+    }
+
+    private static void CheckDuplicateAuthor(System.Data.Common.DbConnection connection, string fullName, int? excludeId, List<string> errors)
+    {
+        var sql = excludeId.HasValue
+            ? "SELECT COUNT(*) FROM Authors WHERE FullName = @FullName AND Id != @ExcludeId"
+            : "SELECT COUNT(*) FROM Authors WHERE FullName = @FullName";
+
+        var count = connection.QuerySingle<int>(sql, new { FullName = fullName, ExcludeId = excludeId });
+
+        if (count > 0)
+        {
+            errors.Add("Автор с таким ФИО уже существует.");
+        }
+    }
+
+    private static void CheckDuplicatePeriodical(System.Data.Common.DbConnection connection, string title, int? excludeId, List<string> errors)
+    {
+        var sql = excludeId.HasValue
+            ? "SELECT COUNT(*) FROM Periodicals WHERE Title = @Title AND Id != @ExcludeId"
+            : "SELECT COUNT(*) FROM Periodicals WHERE Title = @Title";
+
+        var count = connection.QuerySingle<int>(sql, new { Title = title, ExcludeId = excludeId });
+
+        if (count > 0)
+        {
+            errors.Add("Периодическое издание с таким названием уже существует.");
+        }
     }
 }
