@@ -163,6 +163,12 @@ sudo cp angie.conf /etc/angie/angie.conf
 sudo systemctl restart angie
 ```
 
+Создать файл паролей для доступа к админке:
+
+```
+sudo htpasswd -c /etc/angie/.htpasswd admin
+```
+
 ## Развертывание
 
 Приложение работает за обратным прокси. Подойдёт любой обратный прокси, используется Angie.

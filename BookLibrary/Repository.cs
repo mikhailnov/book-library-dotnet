@@ -1,3 +1,5 @@
+// TODO: разделить этот файл на несколько?
+
 using Microsoft.Data.SqlClient;
 using Dapper;
 using BookLibrary.Models;
@@ -327,8 +329,7 @@ public class Repository
         var errors = new List<string>();
 
         // Нормализация: "Иванов И. П." -> "Иванов И.П."
-        author.FullName = System.Text.RegularExpressions.Regex.Replace(
-            author.FullName, @"(\.) ([А-ЯЁA-Z]\.)", "$1$2");
+        author.FullName = NormalizeFullName(author.FullName);
 
         if (string.IsNullOrWhiteSpace(author.FullName))
         {
@@ -432,5 +433,153 @@ public class Repository
         {
             errors.Add("Периодическое издание с таким названием уже существует.");
         }
+    }
+
+    // Нормализация инициалов: "Иванов И. П." -> "Иванов И.П.",
+    // чтобы не было дубликатов из-за пробела или его отсутствия
+    private static string NormalizeFullName(string fullName)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(
+            fullName, @"(\.) ([А-ЯЁA-Z]\.)", "$1$2");
+    }
+
+    // Найти автора по ФИО или создать нового. Возвращает ID автора.
+    private int FindOrCreateAuthor(string fullName, System.Data.Common.DbConnection connection)
+    {
+        fullName = NormalizeFullName(fullName);
+
+        var existingId = connection.QueryFirstOrDefault<int?>(
+            "SELECT Id FROM Authors WHERE FullName = @FullName",
+            new { FullName = fullName });
+
+        if (existingId.HasValue)
+        {
+            return existingId.Value;
+        }
+
+        return connection.QuerySingle<int>(
+            "INSERT INTO Authors (FullName, Description) VALUES (@FullName, ''); SELECT CAST(SCOPE_IDENTITY() AS INT)",
+            new { FullName = fullName });
+    }
+
+    public List<string> CreateBookWithAuthors(string title, int pageCount, string description, List<string> authorNames)
+    {
+        var errors = new List<string>();
+
+        if (authorNames.Count == 0)
+        {
+            errors.Add("Укажите хотя бы одного автора.");
+            return errors;
+        }
+
+        // Валидация каждого автора из списка
+        foreach (var name in authorNames)
+        {
+            var authorErrors = ValidateAuthor(new Author { FullName = name });
+            foreach (var err in authorErrors)
+            {
+                errors.Add(name + ": " + err);
+            }
+        }
+
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
+        var book = new Book
+        {
+            Title = title,
+            PageCount = pageCount,
+            Description = description
+        };
+
+        var bookErrors = ValidateBook(book);
+        if (bookErrors.Count > 0)
+        {
+            return bookErrors;
+        }
+
+        using var connection = new SqlConnection(_connectionString);
+        CheckDuplicateBook(connection, book.Title, null, errors);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
+        var bookId = connection.QuerySingle<int>(
+            "INSERT INTO Books (Title, PageCount, Description) VALUES (@Title, @PageCount, @Description); SELECT CAST(SCOPE_IDENTITY() AS INT)",
+            book);
+
+        foreach (var name in authorNames)
+        {
+            var authorId = FindOrCreateAuthor(name, connection);
+            connection.Execute(
+                "INSERT INTO BookAuthors (BookId, AuthorId) VALUES (@BookId, @AuthorId)",
+                new { BookId = bookId, AuthorId = authorId });
+        }
+
+        return errors;
+    }
+
+    public List<string> CreatePeriodicalWithAuthors(string title, string description, List<string> authorNames)
+    {
+        var errors = new List<string>();
+
+        if (authorNames.Count == 0)
+        {
+            errors.Add("Укажите хотя бы одного автора.");
+            return errors;
+        }
+
+        // Валидация каждого автора из списка
+        foreach (var name in authorNames)
+        {
+            var authorErrors = ValidateAuthor(new Author { FullName = name });
+            foreach (var err in authorErrors)
+            {
+                errors.Add(name + ": " + err);
+            }
+        }
+
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
+        var periodical = new Periodical
+        {
+            Title = title,
+            Description = description
+        };
+
+        var periodicalErrors = ValidatePeriodical(periodical);
+        if (periodicalErrors.Count > 0)
+        {
+            return periodicalErrors;
+        }
+
+        using var connection = new SqlConnection(_connectionString);
+        CheckDuplicatePeriodical(connection, periodical.Title, null, errors);
+        if (errors.Count > 0)
+        {
+            return errors;
+        }
+
+        // SCOPE_IDENTITY() возвращает ID добавленной записи;
+        // здесь важно сделать INSERT и SCOPT_IDENTITY в одном запросе
+        var periodicalId = connection.QuerySingle<int>(
+            "INSERT INTO Periodicals (Title, Description) VALUES (@Title, @Description); SELECT CAST(SCOPE_IDENTITY() AS INT)",
+            periodical);
+
+        foreach (var name in authorNames)
+        {
+            var authorId = FindOrCreateAuthor(name, connection);
+            connection.Execute(
+                "INSERT INTO PeriodicalAuthors (PeriodicalId, AuthorId) VALUES (@PeriodicalId, @AuthorId)",
+                new { PeriodicalId = periodicalId, AuthorId = authorId });
+        }
+
+        return errors;
     }
 }

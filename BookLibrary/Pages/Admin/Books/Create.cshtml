@@ -1,0 +1,42 @@
+@page
+@model CreateBookModel
+@{
+    ViewData["Title"] = "Добавить книгу";
+}
+
+<h1>Добавить книгу</h1>
+
+@if (Model.Errors.Count > 0)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in Model.Errors)
+        {
+            <p>@error</p>
+        }
+    </div>
+}
+
+@if (Model.Success)
+{
+    <div class="alert alert-success">Книга добавлена.</div>
+}
+
+<form method="post">
+    <div class="mb-3">
+        <label class="form-label">Название</label>
+        <input type="text" class="form-control" name="title" required maxlength="500" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Количество страниц</label>
+        <input type="number" class="form-control" name="pageCount" required min="1" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Описание (Markdown)</label>
+        <textarea class="form-control" name="description" rows="5"></textarea>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Авторы (по одному ФИО на строку)</label>
+        <textarea class="form-control" name="authors" rows="3" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Добавить</button>
+</form>
