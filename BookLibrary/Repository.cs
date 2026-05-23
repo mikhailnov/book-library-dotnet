@@ -18,7 +18,7 @@ public class Repository
     public IEnumerable<Book> GetAllBooks()
     {
         using var connection = new SqlConnection(_connectionString);
-        var books = connection.Query<Book>("SELECT * FROM Books").ToList();
+        var books = connection.Query<Book>("SELECT * FROM Books ORDER BY Title").ToList();
 
         var bookAuthors = connection.Query<(int BookId, string FullName)>(
             "SELECT ba.BookId, a.FullName FROM BookAuthors ba JOIN Authors a ON ba.AuthorId = a.Id"
@@ -79,7 +79,7 @@ public class Repository
     public IEnumerable<Author> GetAllAuthors()
     {
         using var connection = new SqlConnection(_connectionString);
-        var authors = connection.Query<Author>("SELECT * FROM Authors").ToList();
+        var authors = connection.Query<Author>("SELECT * FROM Authors ORDER BY FullName").ToList();
 
         var authorBooks = connection.Query<(int AuthorId, string Title)>(
             "SELECT ba.AuthorId, b.Title FROM BookAuthors ba JOIN Books b ON ba.BookId = b.Id"
@@ -135,7 +135,7 @@ public class Repository
     public IEnumerable<Periodical> GetAllPeriodicals()
     {
         using var connection = new SqlConnection(_connectionString);
-        var periodicals = connection.Query<Periodical>("SELECT * FROM Periodicals").ToList();
+        var periodicals = connection.Query<Periodical>("SELECT * FROM Periodicals ORDER BY Title").ToList();
 
         var periodicalAuthors = connection.Query<(int PeriodicalId, string FullName)>(
             "SELECT pa.PeriodicalId, a.FullName FROM PeriodicalAuthors pa JOIN Authors a ON pa.AuthorId = a.Id"
