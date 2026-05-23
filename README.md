@@ -86,10 +86,10 @@ sudo systemctl enable --now mariadb
 sudo mysql_secure_installation
 ```
 
-Перед запуском скрипта инициализации замените пароль в `sql/init-db.sql`.
+Перед запуском скрипта инициализации замените пароль в `mysql/init-db.sql`.
 
 ```
-sudo -u mysql mysql < sql/init-db.sql
+sudo -u mysql mysql < mysql/init-db.sql
 ```
 
 Проверка:
