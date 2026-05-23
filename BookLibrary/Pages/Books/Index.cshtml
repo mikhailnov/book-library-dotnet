@@ -20,7 +20,7 @@
             <tr>
                 <td><a asp-page="/Books/Details" asp-route-id="@book.Id">@book.Title</a></td>
                 <td>@book.PageCount</td>
-                <td>@string.Join(", ", book.Authors)</td>
+                <td>@string.Join(", ", book.AuthorNames)</td>
             </tr>
         }
     </tbody>

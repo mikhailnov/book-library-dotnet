@@ -1,20 +1,21 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using BookLibrary.Models;
 
 namespace BookLibrary.Pages.Periodicals;
 
 public class PeriodicalsIndexModel : PageModel
 {
-    public List<PeriodicalItem> Periodicals { get; set; } = [];
+    private readonly Repository _repository;
+
+    public PeriodicalsIndexModel(Repository repository)
+    {
+        _repository = repository;
+    }
+
+    public List<Periodical> Periodicals { get; set; } = [];
 
     public void OnGet()
     {
-        // Заглушка — позже заменим на данные из БД
+        Periodicals = _repository.GetAllPeriodicals().ToList();
     }
-}
-
-public class PeriodicalItem
-{
-    public int Id { get; set; }
-    public string Title { get; set; } = "";
-    public List<string> Authors { get; set; } = [];
 }
