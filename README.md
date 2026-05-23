@@ -127,6 +127,12 @@ sudo dnf install mssql-tools
 /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P '<пароль_админа>' -Q "USE booklibrary; SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;"
 ```
 
+Добавление тестовых данных:
+
+```
+/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -i mssql/test-data.sql
+```
+
 ### Настройка подключения к базе данных
 
 В `BookLibrary/appsettings.json` в строке подключения `DefaultConnection` указать параметры: адрес сервера, имя пользователя, пароль.
