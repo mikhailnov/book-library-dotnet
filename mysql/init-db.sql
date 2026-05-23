@@ -26,3 +26,17 @@ CREATE TABLE IF NOT EXISTS BookAuthors (
     FOREIGN KEY (BookId) REFERENCES Books(Id) ON DELETE CASCADE,
     FOREIGN KEY (AuthorId) REFERENCES Authors(Id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS Periodicals (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Title VARCHAR(500) NOT NULL,
+    Description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS PeriodicalAuthors (
+    PeriodicalId INT NOT NULL,
+    AuthorId INT NOT NULL,
+    PRIMARY KEY (PeriodicalId, AuthorId),
+    FOREIGN KEY (PeriodicalId) REFERENCES Periodicals(Id) ON DELETE CASCADE,
+    FOREIGN KEY (AuthorId) REFERENCES Authors(Id) ON DELETE CASCADE
+);

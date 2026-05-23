@@ -1,0 +1,25 @@
+@page
+@model PeriodicalsIndexModel
+@{
+    ViewData["Title"] = "Периодические издания";
+}
+
+<h1>Периодические издания</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Авторы</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var periodical in Model.Periodicals)
+        {
+            <tr>
+                <td><a asp-page="/Periodicals/Details" asp-route-id="@periodical.Id">@periodical.Title</a></td>
+                <td>@string.Join(", ", periodical.Authors)</td>
+            </tr>
+        }
+    </tbody>
+</table>
