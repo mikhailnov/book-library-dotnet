@@ -18,7 +18,7 @@
         {
             <tr>
                 <td><a asp-page="/Authors/Details" asp-route-id="@author.Id">@author.FullName</a></td>
-                <td>@string.Join(", ", author.Books)</td>
+                <td>@string.Join(", ", author.BookNames)</td>
             </tr>
         }
     </tbody>

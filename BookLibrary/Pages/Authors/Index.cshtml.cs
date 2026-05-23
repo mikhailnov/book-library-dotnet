@@ -1,20 +1,21 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using BookLibrary.Models;
 
 namespace BookLibrary.Pages.Authors;
 
 public class AuthorsIndexModel : PageModel
 {
-    public List<AuthorItem> Authors { get; set; } = [];
+    private readonly Repository _repository;
+
+    public AuthorsIndexModel(Repository repository)
+    {
+        _repository = repository;
+    }
+
+    public List<Author> Authors { get; set; } = [];
 
     public void OnGet()
     {
-        // Заглушка — позже заменим на данные из БД
+        Authors = _repository.GetAllAuthors().ToList();
     }
-}
-
-public class AuthorItem
-{
-    public int Id { get; set; }
-    public string FullName { get; set; } = "";
-    public List<string> Books { get; set; } = [];
 }

@@ -67,7 +67,20 @@ public class Repository
     public IEnumerable<Author> GetAllAuthors()
     {
         using var connection = new SqlConnection(_connectionString);
-        return connection.Query<Author>("SELECT * FROM Authors");
+        var authors = connection.Query<Author>("SELECT * FROM Authors").ToList();
+
+        var authorBooks = connection.Query<(int AuthorId, string Title)>(
+            "SELECT ba.AuthorId, b.Title FROM BookAuthors ba JOIN Books b ON ba.BookId = b.Id"
+        ).ToList();
+
+        var bookLookup = authorBooks.ToLookup(ab => ab.AuthorId, ab => ab.Title);
+
+        foreach (var author in authors)
+        {
+            author.BookNames = bookLookup[author.Id].ToList();
+        }
+
+        return authors;
     }
 
     public Author? GetAuthorById(int id)
