@@ -11,6 +11,7 @@
         <tr>
             <th>ФИО</th>
             <th>Книги</th>
+            <th>Периодика</th>
         </tr>
     </thead>
     <tbody>
@@ -19,6 +20,7 @@
             <tr>
                 <td><a asp-page="/Authors/Details" asp-route-id="@author.Id">@author.FullName</a></td>
                 <td>@string.Join(", ", author.BookNames)</td>
+                <td>@string.Join(", ", author.PeriodicalNames)</td>
             </tr>
         }
     </tbody>

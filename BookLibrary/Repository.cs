@@ -87,9 +87,16 @@ public class Repository
 
         var bookLookup = authorBooks.ToLookup(ab => ab.AuthorId, ab => ab.Title);
 
+        var authorPeriodicals = connection.Query<(int AuthorId, string Title)>(
+            "SELECT pa.AuthorId, p.Title FROM PeriodicalAuthors pa JOIN Periodicals p ON pa.PeriodicalId = p.Id"
+        ).ToList();
+
+        var periodicalLookup = authorPeriodicals.ToLookup(ap => ap.AuthorId, ap => ap.Title);
+
         foreach (var author in authors)
         {
             author.BookNames = bookLookup[author.Id].ToList();
+            author.PeriodicalNames = periodicalLookup[author.Id].ToList();
         }
 
         return authors;

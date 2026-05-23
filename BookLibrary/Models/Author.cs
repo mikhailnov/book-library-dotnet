@@ -6,4 +6,5 @@ public class Author
     public string FullName { get; set; } = "";
     public string Description { get; set; } = "";
     public List<string> BookNames { get; set; } = [];
+    public List<string> PeriodicalNames { get; set; } = [];
 }

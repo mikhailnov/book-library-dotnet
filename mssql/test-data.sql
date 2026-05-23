@@ -106,3 +106,80 @@ INSERT INTO BookAuthors (BookId, AuthorId)
 SELECT b.Id, a.Id FROM Books b, Authors a
 WHERE b.Title = N'Компьютерные сети. Принципы, технологии, протоколы' AND a.FullName = N'Олифер Наталья Викторовна';
 GO
+
+-- Периодические издания
+
+IF NOT EXISTS (SELECT 1 FROM Authors WHERE FullName = N'Кузнецов А.В.')
+INSERT INTO Authors (FullName, Description) VALUES (
+  N'Кузнецов А.В.',
+  N''
+);
+IF NOT EXISTS (SELECT 1 FROM Authors WHERE FullName = N'Иванов П.И.')
+INSERT INTO Authors (FullName, Description) VALUES (
+  N'Иванов П.И.',
+  N''
+);
+IF NOT EXISTS (SELECT 1 FROM Authors WHERE FullName = N'Юрова А.Б.')
+INSERT INTO Authors (FullName, Description) VALUES (
+  N'Юрова А.Б.',
+  N''
+);
+IF NOT EXISTS (SELECT 1 FROM Authors WHERE FullName = N'Издательский дом «Северная Москва»')
+INSERT INTO Authors (FullName, Description) VALUES (
+  N'Издательский дом «Северная Москва»',
+  N''
+);
+GO
+
+IF NOT EXISTS (SELECT 1 FROM Periodicals WHERE Title = N'Моя любимая дача')
+INSERT INTO Periodicals (Title, Description) VALUES (
+  N'Моя любимая дача',
+  N'Журнал для дачников и садоводов.'
+);
+IF NOT EXISTS (SELECT 1 FROM Periodicals WHERE Title = N'Северная Москва')
+INSERT INTO Periodicals (Title, Description) VALUES (
+  N'Северная Москва',
+  N'Газета о жизни Северного округа Москвы.'
+);
+GO
+
+IF NOT EXISTS (
+  SELECT 1 FROM PeriodicalAuthors pa
+  JOIN Periodicals p ON pa.PeriodicalId = p.Id
+  JOIN Authors a ON pa.AuthorId = a.Id
+  WHERE p.Title = N'Моя любимая дача' AND a.FullName = N'Кузнецов А.В.'
+)
+INSERT INTO PeriodicalAuthors (PeriodicalId, AuthorId)
+SELECT p.Id, a.Id FROM Periodicals p, Authors a
+WHERE p.Title = N'Моя любимая дача' AND a.FullName = N'Кузнецов А.В.';
+
+IF NOT EXISTS (
+  SELECT 1 FROM PeriodicalAuthors pa
+  JOIN Periodicals p ON pa.PeriodicalId = p.Id
+  JOIN Authors a ON pa.AuthorId = a.Id
+  WHERE p.Title = N'Моя любимая дача' AND a.FullName = N'Иванов П.И.'
+)
+INSERT INTO PeriodicalAuthors (PeriodicalId, AuthorId)
+SELECT p.Id, a.Id FROM Periodicals p, Authors a
+WHERE p.Title = N'Моя любимая дача' AND a.FullName = N'Иванов П.И.';
+
+IF NOT EXISTS (
+  SELECT 1 FROM PeriodicalAuthors pa
+  JOIN Periodicals p ON pa.PeriodicalId = p.Id
+  JOIN Authors a ON pa.AuthorId = a.Id
+  WHERE p.Title = N'Моя любимая дача' AND a.FullName = N'Юрова А.Б.'
+)
+INSERT INTO PeriodicalAuthors (PeriodicalId, AuthorId)
+SELECT p.Id, a.Id FROM Periodicals p, Authors a
+WHERE p.Title = N'Моя любимая дача' AND a.FullName = N'Юрова А.Б.';
+
+IF NOT EXISTS (
+  SELECT 1 FROM PeriodicalAuthors pa
+  JOIN Periodicals p ON pa.PeriodicalId = p.Id
+  JOIN Authors a ON pa.AuthorId = a.Id
+  WHERE p.Title = N'Северная Москва' AND a.FullName = N'Издательский дом «Северная Москва»'
+)
+INSERT INTO PeriodicalAuthors (PeriodicalId, AuthorId)
+SELECT p.Id, a.Id FROM Periodicals p, Authors a
+WHERE p.Title = N'Северная Москва' AND a.FullName = N'Издательский дом «Северная Москва»';
+GO
