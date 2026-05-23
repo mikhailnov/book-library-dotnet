@@ -19,8 +19,8 @@
         {
             <tr>
                 <td><a asp-page="/Authors/Details" asp-route-id="@author.Id">@author.FullName</a></td>
-                <td>@string.Join(", ", author.BookNames)</td>
-                <td>@string.Join(", ", author.PeriodicalNames)</td>
+                <td>@string.Join(", ", author.Books.Select(b => b.Title))</td>
+                <td>@string.Join(", ", author.Periodicals.Select(p => p.Title))</td>
             </tr>
         }
     </tbody>

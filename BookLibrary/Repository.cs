@@ -111,22 +111,24 @@ public class Repository
         using var connection = new SqlConnection(_connectionString);
         var authors = connection.Query<Author>("SELECT * FROM Authors ORDER BY FullName").ToList();
 
-        var authorBooks = connection.Query<(int AuthorId, string Title)>(
-            "SELECT ba.AuthorId, b.Title FROM BookAuthors ba JOIN Books b ON ba.BookId = b.Id"
+        // JOIN связывает BookAuthors и Books: каждая строка = автор + книга + название
+        // ba.AuthorId - Id автора, b.Id AS BookId - Id книги, b.Title - название книги
+        var authorBooks = connection.Query<(int AuthorId, int BookId, string Title)>(
+            "SELECT ba.AuthorId, b.Id AS BookId, b.Title FROM BookAuthors ba JOIN Books b ON ba.BookId = b.Id"
         ).ToList();
 
-        var bookLookup = authorBooks.ToLookup(ab => ab.AuthorId, ab => ab.Title);
+        var bookLookup = authorBooks.ToLookup(ab => ab.AuthorId, ab => new LinkedItem { Id = ab.BookId, Title = ab.Title });
 
-        var authorPeriodicals = connection.Query<(int AuthorId, string Title)>(
-            "SELECT pa.AuthorId, p.Title FROM PeriodicalAuthors pa JOIN Periodicals p ON pa.PeriodicalId = p.Id"
+        var authorPeriodicals = connection.Query<(int AuthorId, int PeriodicalId, string Title)>(
+            "SELECT pa.AuthorId, p.Id AS PeriodicalId, p.Title FROM PeriodicalAuthors pa JOIN Periodicals p ON pa.PeriodicalId = p.Id"
         ).ToList();
 
-        var periodicalLookup = authorPeriodicals.ToLookup(ap => ap.AuthorId, ap => ap.Title);
+        var periodicalLookup = authorPeriodicals.ToLookup(ap => ap.AuthorId, ap => new LinkedItem { Id = ap.PeriodicalId, Title = ap.Title });
 
         foreach (var author in authors)
         {
-            author.BookNames = bookLookup[author.Id].ToList();
-            author.PeriodicalNames = periodicalLookup[author.Id].ToList();
+            author.Books = bookLookup[author.Id].ToList();
+            author.Periodicals = periodicalLookup[author.Id].ToList();
         }
 
         return authors;
@@ -142,18 +144,8 @@ public class Repository
             return null;
         }
 
-        author.BookNames = connection.Query<string>(
-            "SELECT b.Title FROM BookAuthors ba JOIN Books b ON ba.BookId = b.Id WHERE ba.AuthorId = @Id",
-            new { Id = id }
-        ).ToList();
-
         author.Books = connection.Query<LinkedItem>(
             "SELECT b.Id, b.Title FROM BookAuthors ba JOIN Books b ON ba.BookId = b.Id WHERE ba.AuthorId = @Id",
-            new { Id = id }
-        ).ToList();
-
-        author.PeriodicalNames = connection.Query<string>(
-            "SELECT p.Title FROM PeriodicalAuthors pa JOIN Periodicals p ON pa.PeriodicalId = p.Id WHERE pa.AuthorId = @Id",
             new { Id = id }
         ).ToList();
 
