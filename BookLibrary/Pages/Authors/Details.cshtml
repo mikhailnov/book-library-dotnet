@@ -1,0 +1,46 @@
+@page
+@model AuthorDetailsModel
+@using Markdig
+@using BookLibrary.Models
+@{
+    ViewData["Title"] = Model.Author.FullName;
+
+    // DisableHtml: все HTML-теги экранируются, в т.ч. опасные (<script> и др.)
+    var pipeline = new MarkdownPipelineBuilder().DisableHtml().Build();
+    var descriptionHtml = Markdown.ToHtml(Model.Author.Description, pipeline);
+}
+
+<h1>@Model.Author.FullName</h1>
+<!-- Razor автоматически экранирует HTML во всех полях, кроме Html.Raw() ниже -->
+<!-- HTML запрещён при сохранении (CheckHtml) и экранируется при выводе (DisableHtml) -->
+<div>@Html.Raw(descriptionHtml)</div>
+
+<h2>Книги</h2>
+@if (Model.Author.Books.Count > 0)
+{
+    <ul>
+        @foreach (var book in Model.Author.Books)
+        {
+            <li><a asp-page="/Books/Details" asp-route-id="@book.Id">@book.Title</a></li>
+        }
+    </ul>
+}
+else
+{
+    <p>Нет книг.</p>
+}
+
+<h2>Периодика</h2>
+@if (Model.Author.Periodicals.Count > 0)
+{
+    <ul>
+        @foreach (var periodical in Model.Author.Periodicals)
+        {
+            <li><a asp-page="/Periodicals/Details" asp-route-id="@periodical.Id">@periodical.Title</a></li>
+        }
+    </ul>
+}
+else
+{
+    <p>Нет периодических изданий.</p>
+}

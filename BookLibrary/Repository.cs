@@ -135,7 +135,34 @@ public class Repository
     public Author? GetAuthorById(int id)
     {
         using var connection = new SqlConnection(_connectionString);
-        return connection.QueryFirstOrDefault<Author>("SELECT * FROM Authors WHERE Id = @Id", new { Id = id });
+        var author = connection.QueryFirstOrDefault<Author>("SELECT * FROM Authors WHERE Id = @Id", new { Id = id });
+
+        if (author == null)
+        {
+            return null;
+        }
+
+        author.BookNames = connection.Query<string>(
+            "SELECT b.Title FROM BookAuthors ba JOIN Books b ON ba.BookId = b.Id WHERE ba.AuthorId = @Id",
+            new { Id = id }
+        ).ToList();
+
+        author.Books = connection.Query<LinkedItem>(
+            "SELECT b.Id, b.Title FROM BookAuthors ba JOIN Books b ON ba.BookId = b.Id WHERE ba.AuthorId = @Id",
+            new { Id = id }
+        ).ToList();
+
+        author.PeriodicalNames = connection.Query<string>(
+            "SELECT p.Title FROM PeriodicalAuthors pa JOIN Periodicals p ON pa.PeriodicalId = p.Id WHERE pa.AuthorId = @Id",
+            new { Id = id }
+        ).ToList();
+
+        author.Periodicals = connection.Query<LinkedItem>(
+            "SELECT p.Id, p.Title FROM PeriodicalAuthors pa JOIN Periodicals p ON pa.PeriodicalId = p.Id WHERE pa.AuthorId = @Id",
+            new { Id = id }
+        ).ToList();
+
+        return author;
     }
 
     public List<string> CreateAuthor(Author author)
