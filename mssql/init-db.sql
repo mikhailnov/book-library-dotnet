@@ -1,24 +1,32 @@
-CREATE DATABASE IF NOT EXISTS booklibrary;
-CREATE USER IF NOT EXISTS 'booklibrary'@'localhost' IDENTIFIED BY 'пароль';
-GRANT ALL PRIVILEGES ON booklibrary.* TO 'booklibrary'@'localhost';
-FLUSH PRIVILEGES;
+CREATE DATABASE booklibrary;
+GO
 
 USE booklibrary;
+GO
 
-CREATE TABLE IF NOT EXISTS Books (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Title VARCHAR(500) NOT NULL,
+CREATE LOGIN booklibrary WITH PASSWORD = 'Change_Me123!';
+CREATE USER booklibrary FOR LOGIN booklibrary;
+GO
+
+ALTER ROLE db_owner ADD MEMBER booklibrary;
+GO
+
+CREATE TABLE Books (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Title NVARCHAR(500) NOT NULL,
     PageCount INT NOT NULL,
-    Description TEXT
+    Description NVARCHAR(MAX)
 );
+GO
 
-CREATE TABLE IF NOT EXISTS Authors (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    FullName VARCHAR(500) NOT NULL,
-    Description TEXT
+CREATE TABLE Authors (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    FullName NVARCHAR(500) NOT NULL,
+    Description NVARCHAR(MAX)
 );
+GO
 
-CREATE TABLE IF NOT EXISTS BookAuthors (
+CREATE TABLE BookAuthors (
     BookId INT NOT NULL,
     AuthorId INT NOT NULL,
     PRIMARY KEY (BookId, AuthorId),
@@ -26,17 +34,20 @@ CREATE TABLE IF NOT EXISTS BookAuthors (
     FOREIGN KEY (BookId) REFERENCES Books(Id) ON DELETE CASCADE,
     FOREIGN KEY (AuthorId) REFERENCES Authors(Id) ON DELETE CASCADE
 );
+GO
 
-CREATE TABLE IF NOT EXISTS Periodicals (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Title VARCHAR(500) NOT NULL,
-    Description TEXT
+CREATE TABLE Periodicals (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Title NVARCHAR(500) NOT NULL,
+    Description NVARCHAR(MAX)
 );
+GO
 
-CREATE TABLE IF NOT EXISTS PeriodicalAuthors (
+CREATE TABLE PeriodicalAuthors (
     PeriodicalId INT NOT NULL,
     AuthorId INT NOT NULL,
     PRIMARY KEY (PeriodicalId, AuthorId),
     FOREIGN KEY (PeriodicalId) REFERENCES Periodicals(Id) ON DELETE CASCADE,
     FOREIGN KEY (AuthorId) REFERENCES Authors(Id) ON DELETE CASCADE
 );
+GO

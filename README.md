@@ -5,7 +5,7 @@
 ## Стек технологий
 
 - **Платформа:** .NET 9 (ASP.NET Core)
-- **База данных:** MariaDB (MySQL)
+- **База данных:** Microsoft SQL Server
 - **Доступ к базе данных:** Dapper (микро-ORM). Не создаёт жёсткой привязки к конкретной СУБД — привязка определяется только синтаксисом SQL-запросов.
 - **Веб-интерфейс:** Razor Pages
 
@@ -83,12 +83,14 @@
 Ограничения задаются константами в коде и не делаются настраиваемыми.
 
 - Название книги: не более 500 символов
-- Описание книги: не более 65535 символов, поддерживается разметка Markdown (ограничение обусловлено типом TEXT в MySQL/MariaDB)
+- Описание книги: не более 100000 символов, поддерживается разметка Markdown
 - Количество страниц в книге: положительное число
 - Название периодического издания: не более 500 символов
-- Описание периодического издания: не более 65535 символов, поддерживается разметка Markdown (ограничение обусловлено типом TEXT в MySQL/MariaDB)
+- Описание периодического издания: не более 100000 символов, поддерживается разметка Markdown
 - ФИО автора: не более 500 символов
-- Описание автора: не более 65535 символов, поддерживается разметка Markdown (ограничение обусловлено типом TEXT в MySQL/MariaDB)
+- Описание автора: не более 100000 символов, поддерживается разметка Markdown
+
+Тип `NVARCHAR(MAX)` в MS SQL Server вмещает до ~1 млрд символов. Указанные ограничения задаются валидацией в приложении и при необходимости могут быть изменены.
 
 ## Выбор Razor Pages
 
@@ -102,24 +104,27 @@
 sudo dnf install dotnet-sdk-9.0
 ```
 
-### Установка и настройка MariaDB
+### Установка и настройка Microsoft SQL Server
 
 ```
-sudo dnf install mariadb
-sudo systemctl enable --now mariadb
-sudo mysql_secure_installation
+sudo curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/9/mssql-server-2025.repo
+sudo dnf install mssql-server
+sudo /opt/mssql/bin/mssql-conf setup
+sudo systemctl enable --now mssql-server
+sudo curl -o /etc/yum.repos.d/mssql-tools.repo https://packages.microsoft.com/config/rhel/9/prod.repo
+sudo dnf install mssql-tools
 ```
 
-Перед запуском скрипта инициализации замените пароль в `mysql/init-db.sql`.
+Перед запуском скрипта инициализации замените пароль в `mssql/init-db.sql`.
 
 ```
-sudo -u mysql mysql < mysql/init-db.sql
+/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P '<пароль_админа>' -i mssql/init-db.sql
 ```
 
 Проверка:
 
 ```
-sudo -u mysql mysql -e "USE booklibrary; SHOW TABLES; DESCRIBE Books; DESCRIBE Authors; DESCRIBE BookAuthors;"
+/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P '<пароль_админа>' -Q "USE booklibrary; SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;"
 ```
 
 ### Настройка подключения к базе данных
@@ -130,7 +135,7 @@ sudo -u mysql mysql -e "USE booklibrary; SHOW TABLES; DESCRIBE Books; DESCRIBE A
 
 ```
 cd BookLibrary
-dotnet add package MySqlConnector
+dotnet add package Microsoft.Data.SqlClient
 dotnet add package Dapper
 ```
 
