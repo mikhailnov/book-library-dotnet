@@ -154,7 +154,19 @@ public class Repository
     public Periodical? GetPeriodicalById(int id)
     {
         using var connection = new SqlConnection(_connectionString);
-        return connection.QueryFirstOrDefault<Periodical>("SELECT * FROM Periodicals WHERE Id = @Id", new { Id = id });
+        var periodical = connection.QueryFirstOrDefault<Periodical>("SELECT * FROM Periodicals WHERE Id = @Id", new { Id = id });
+
+        if (periodical == null)
+        {
+            return null;
+        }
+
+        periodical.AuthorNames = connection.Query<string>(
+            "SELECT a.FullName FROM PeriodicalAuthors pa JOIN Authors a ON pa.AuthorId = a.Id WHERE pa.PeriodicalId = @Id",
+            new { Id = id }
+        ).ToList();
+
+        return periodical;
     }
 
     public void CreatePeriodical(Periodical periodical)

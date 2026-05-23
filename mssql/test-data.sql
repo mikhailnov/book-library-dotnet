@@ -129,6 +129,11 @@ INSERT INTO Authors (FullName, Description) VALUES (
   N'Издательский дом «Северная Москва»',
   N''
 );
+IF NOT EXISTS (SELECT 1 FROM Authors WHERE FullName = N'Петров А.Г.')
+INSERT INTO Authors (FullName, Description) VALUES (
+  N'Петров А.Г.',
+  N''
+);
 GO
 
 IF NOT EXISTS (SELECT 1 FROM Periodicals WHERE Title = N'Моя любимая дача')
@@ -182,4 +187,31 @@ IF NOT EXISTS (
 INSERT INTO PeriodicalAuthors (PeriodicalId, AuthorId)
 SELECT p.Id, a.Id FROM Periodicals p, Authors a
 WHERE p.Title = N'Северная Москва' AND a.FullName = N'Издательский дом «Северная Москва»';
+
+IF NOT EXISTS (SELECT 1 FROM Periodicals WHERE Title = N'Журнал «Мой Савеловский район»')
+INSERT INTO Periodicals (Title, Description) VALUES (
+  N'Журнал «Мой Савеловский район»',
+  N'Журнал о прошлом и настоящем Савёловского района Москвы.'
+);
+GO
+
+IF NOT EXISTS (
+  SELECT 1 FROM PeriodicalAuthors pa
+  JOIN Periodicals p ON pa.PeriodicalId = p.Id
+  JOIN Authors a ON pa.AuthorId = a.Id
+  WHERE p.Title = N'Журнал «Мой Савеловский район»' AND a.FullName = N'Юрова А.Б.'
+)
+INSERT INTO PeriodicalAuthors (PeriodicalId, AuthorId)
+SELECT p.Id, a.Id FROM Periodicals p, Authors a
+WHERE p.Title = N'Журнал «Мой Савеловский район»' AND a.FullName = N'Юрова А.Б.';
+
+IF NOT EXISTS (
+  SELECT 1 FROM PeriodicalAuthors pa
+  JOIN Periodicals p ON pa.PeriodicalId = p.Id
+  JOIN Authors a ON pa.AuthorId = a.Id
+  WHERE p.Title = N'Журнал «Мой Савеловский район»' AND a.FullName = N'Петров А.Г.'
+)
+INSERT INTO PeriodicalAuthors (PeriodicalId, AuthorId)
+SELECT p.Id, a.Id FROM Periodicals p, Authors a
+WHERE p.Title = N'Журнал «Мой Савеловский район»' AND a.FullName = N'Петров А.Г.';
 GO

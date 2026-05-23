@@ -1,0 +1,14 @@
+@page
+@model PeriodicalDetailsModel
+@using Markdig
+@{
+    ViewData["Title"] = Model.Periodical.Title;
+    var descriptionHtml = Markdown.ToHtml(Model.Periodical.Description);
+}
+
+<h1>@Model.Periodical.Title</h1>
+<dl class="row">
+    <dt class="col-sm-3">@(Model.Periodical.AuthorNames.Count == 1 ? "Автор" : "Авторы")</dt>
+    <dd class="col-sm-9">@string.Join(", ", Model.Periodical.AuthorNames)</dd>
+</dl>
+<div>@Html.Raw(descriptionHtml)</div>
