@@ -18,7 +18,20 @@ public class Repository
     public IEnumerable<Book> GetAllBooks()
     {
         using var connection = new SqlConnection(_connectionString);
-        return connection.Query<Book>("SELECT * FROM Books");
+        var books = connection.Query<Book>("SELECT * FROM Books").ToList();
+
+        var bookAuthors = connection.Query<(int BookId, string FullName)>(
+            "SELECT ba.BookId, a.FullName FROM BookAuthors ba JOIN Authors a ON ba.AuthorId = a.Id"
+        ).ToList();
+
+        var authorLookup = bookAuthors.ToLookup(ba => ba.BookId, ba => ba.FullName);
+
+        foreach (var book in books)
+        {
+            book.AuthorNames = authorLookup[book.Id].ToList();
+        }
+
+        return books;
     }
 
     public Book? GetBookById(int id)
@@ -90,7 +103,20 @@ public class Repository
     public IEnumerable<Periodical> GetAllPeriodicals()
     {
         using var connection = new SqlConnection(_connectionString);
-        return connection.Query<Periodical>("SELECT * FROM Periodicals");
+        var periodicals = connection.Query<Periodical>("SELECT * FROM Periodicals").ToList();
+
+        var periodicalAuthors = connection.Query<(int PeriodicalId, string FullName)>(
+            "SELECT pa.PeriodicalId, a.FullName FROM PeriodicalAuthors pa JOIN Authors a ON pa.AuthorId = a.Id"
+        ).ToList();
+
+        var authorLookup = periodicalAuthors.ToLookup(pa => pa.PeriodicalId, pa => pa.FullName);
+
+        foreach (var periodical in periodicals)
+        {
+            periodical.AuthorNames = authorLookup[periodical.Id].ToList();
+        }
+
+        return periodicals;
     }
 
     public Periodical? GetPeriodicalById(int id)
