@@ -11,6 +11,16 @@ INSERT INTO Authors (FullName, Description) VALUES (
   N'Лев Толстой',
   N'Русский писатель, граф. Один из величайших писателей мира, автор романов-эпопей, повестей и рассказов.'
 );
+IF NOT EXISTS (SELECT 1 FROM Authors WHERE FullName = N'Олифер Виктор Григорьевич')
+INSERT INTO Authors (FullName, Description) VALUES (
+  N'Олифер Виктор Григорьевич',
+  N'Специалист в области компьютерных сетей и телекоммуникаций.'
+);
+IF NOT EXISTS (SELECT 1 FROM Authors WHERE FullName = N'Олифер Наталья Викторовна')
+INSERT INTO Authors (FullName, Description) VALUES (
+  N'Олифер Наталья Викторовна',
+  N'Специалист в области компьютерных сетей и сетевых технологий.'
+);
 GO
 
 -- CHAR(10) — символ перевода строки (LF), нужен для Markdown, так как SQL-строки не могут содержать реальный перенос
@@ -67,4 +77,32 @@ IF NOT EXISTS (
 INSERT INTO BookAuthors (BookId, AuthorId)
 SELECT b.Id, a.Id FROM Books b, Authors a
 WHERE b.Title = N'Идиот' AND a.FullName = N'Фёдор Достоевский';
+
+IF NOT EXISTS (SELECT 1 FROM Books WHERE Title = N'Компьютерные сети. Принципы, технологии, протоколы')
+INSERT INTO Books (Title, PageCount, Description) VALUES (
+  N'Компьютерные сети. Принципы, технологии, протоколы',
+  992,
+  N'Издание предназначено для студентов, аспирантов и технических специалистов, которые хотели бы получить базовые знания о принципах построения компьютерных сетей, понять особенности традиционных и перспективных технологий локальных и глобальных сетей, изучить способы создания крупных составных сетей и управления такими сетями.'
+);
+GO
+
+IF NOT EXISTS (
+  SELECT 1 FROM BookAuthors ba
+  JOIN Books b ON ba.BookId = b.Id
+  JOIN Authors a ON ba.AuthorId = a.Id
+  WHERE b.Title = N'Компьютерные сети. Принципы, технологии, протоколы' AND a.FullName = N'Олифер Виктор Григорьевич'
+)
+INSERT INTO BookAuthors (BookId, AuthorId)
+SELECT b.Id, a.Id FROM Books b, Authors a
+WHERE b.Title = N'Компьютерные сети. Принципы, технологии, протоколы' AND a.FullName = N'Олифер Виктор Григорьевич';
+
+IF NOT EXISTS (
+  SELECT 1 FROM BookAuthors ba
+  JOIN Books b ON ba.BookId = b.Id
+  JOIN Authors a ON ba.AuthorId = a.Id
+  WHERE b.Title = N'Компьютерные сети. Принципы, технологии, протоколы' AND a.FullName = N'Олифер Наталья Викторовна'
+)
+INSERT INTO BookAuthors (BookId, AuthorId)
+SELECT b.Id, a.Id FROM Books b, Authors a
+WHERE b.Title = N'Компьютерные сети. Принципы, технологии, протоколы' AND a.FullName = N'Олифер Наталья Викторовна';
 GO

@@ -37,7 +37,19 @@ public class Repository
     public Book? GetBookById(int id)
     {
         using var connection = new SqlConnection(_connectionString);
-        return connection.QueryFirstOrDefault<Book>("SELECT * FROM Books WHERE Id = @Id", new { Id = id });
+        var book = connection.QueryFirstOrDefault<Book>("SELECT * FROM Books WHERE Id = @Id", new { Id = id });
+
+        if (book == null)
+        {
+            return null;
+        }
+
+        book.AuthorNames = connection.Query<string>(
+            "SELECT a.FullName FROM BookAuthors ba JOIN Authors a ON ba.AuthorId = a.Id WHERE ba.BookId = @Id",
+            new { Id = id }
+        ).ToList();
+
+        return book;
     }
 
     public void CreateBook(Book book)

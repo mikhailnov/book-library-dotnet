@@ -1,0 +1,14 @@
+@page
+@model BookDetailsModel
+@{
+    ViewData["Title"] = Model.Book.Title;
+}
+
+<h1>@Model.Book.Title</h1>
+<dl class="row">
+    <dt class="col-sm-3">Страниц</dt>
+    <dd class="col-sm-9">@Model.Book.PageCount</dd>
+    <dt class="col-sm-3">@(Model.Book.AuthorNames.Count == 1 ? "Автор" : "Авторы")</dt>
+    <dd class="col-sm-9">@string.Join(", ", Model.Book.AuthorNames)</dd>
+</dl>
+<div>@Model.Book.Description</div>
