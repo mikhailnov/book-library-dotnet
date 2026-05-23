@@ -143,6 +143,7 @@ sudo dnf install mssql-tools
 cd BookLibrary
 dotnet add package Microsoft.Data.SqlClient
 dotnet add package Dapper
+dotnet add package Markdig
 ```
 
 ### Запуск приложения

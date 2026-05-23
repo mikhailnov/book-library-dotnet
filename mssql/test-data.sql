@@ -28,21 +28,21 @@ IF NOT EXISTS (SELECT 1 FROM Books WHERE Title = N'Преступление и �
 INSERT INTO Books (Title, PageCount, Description) VALUES (
   N'Преступление и наказание',
   671,
-  N'## Преступление и наказание' + CHAR(10) +
+  N'## Великий роман Достоевского' + CHAR(10) +
   N'Роман о бедном студенте **Родионе Раскольникове**, который совершает убийство и мучается угрызениями совести.'
 );
 IF NOT EXISTS (SELECT 1 FROM Books WHERE Title = N'Война и мир')
 INSERT INTO Books (Title, PageCount, Description) VALUES (
   N'Война и мир',
   1225,
-  N'## Война и мир' + CHAR(10) +
+  N'## Эпопея о судьбах России' + CHAR(10) +
   N'Роман-эпопея, повествующий о судьбах нескольких семей на фоне **Отечественной войны 1812 года**.'
 );
 IF NOT EXISTS (SELECT 1 FROM Books WHERE Title = N'Идиот')
 INSERT INTO Books (Title, PageCount, Description) VALUES (
   N'Идиот',
   640,
-  N'## Идиот' + CHAR(10) +
+  N'## История «положительно прекрасного человека»' + CHAR(10) +
   N'Роман о князе **Льве Мышкине**, человеке необыкновенной доброты и чистоты, возвращающемся в Россию из швейцарской клиники.'
 );
 GO
